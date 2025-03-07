@@ -1,7 +1,41 @@
 import os
 from google import genai
 from flask import request, jsonify
+from http import HTTPStatus
 from app.routes import bp
+from app.utils.error import error_logger
+import uuid
+from app.utils.types import BasicInfo
+from pydantic import ValidationError
+
+@bp.route('/basic_info', methods=['POST'])
+def basic_info():
+    try:
+        data = BasicInfo(**request.get_json())
+
+        return jsonify({
+            "status": "success",
+            "message": "Basic info received",
+            "data": data.model_dump()
+        }), HTTPStatus.OK
+    
+    except ValidationError as error:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid input data",
+            "errors": error.errors()
+        }), HTTPStatus.BAD_REQUEST
+        
+    except Exception as error:
+        error_id = str(uuid.uuid4())
+        error_logger(error, error_id)
+        
+        return jsonify({
+            "status": "error",
+            "message": f"An error occurred: {error}",
+            "error_id": error_id
+        }), HTTPStatus.INTERNAL_SERVER_ERROR
+
 
 @bp.route('/api/gemini', methods=['POST', 'GET'])
 def gemini_proxy():

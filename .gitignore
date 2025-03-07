@@ -44,6 +44,7 @@ frontend/next-env.d.ts
 backend/.venv
 backend/app/__pycache__/
 backend/app/routes/__pycache__/
+backend/app/utils/__pycache__/
 backend/__pycache__/
 backend/tests/__pycache__
 backend/instance/
