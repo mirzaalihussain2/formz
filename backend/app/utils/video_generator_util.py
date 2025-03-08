@@ -25,10 +25,20 @@ class VideoGenerator:
         # Set the API token for the replicate client
         os.environ["REPLICATE_API_TOKEN"] = self.api_token
     
-    def generate_video(self, output_path="./generated_video.mp4"):
-        """Generate a simple 5-second video and save to the specified path"""
-        # Hardcoded prompt
-        prompt = "A trendy 5-second TikTok advertisement showing a sleek smartphone with animated apps floating around it. Fast-paced, colorful, modern aesthetic with dynamic transitions."
+    def generate_video(self, prompt=None, output_path="./generated_video.mp4"):
+        """
+        Generate a video based on the provided prompt and save to the specified path
+        
+        Args:
+            prompt (str): The prompt to use for video generation. If None, a default prompt is used.
+            output_path (str): Path where the generated video will be saved
+            
+        Returns:
+            str: Path to the generated video file
+        """
+        # Use default prompt if none provided
+        if prompt is None:
+            prompt = "A trendy 5-second TikTok advertisement showing a sleek smartphone with animated apps floating around it. Fast-paced, colorful, modern aesthetic with dynamic transitions."
         
         print(f"Generating video with prompt: {prompt}")
         
@@ -61,10 +71,4 @@ class VideoGenerator:
             
         except Exception as e:
             print(f"Error generating video: {str(e)}")
-            raise
-
-
-if __name__ == "__main__":
-    # Simple direct usage
-    generator = VideoGenerator()
-    generator.generate_video("./video_output.mp4") 
+            raise 

@@ -2,12 +2,12 @@ import time
 import logging
 import os
 from selenium.webdriver.common.by import By
-from app.routes.base_scraper import BaseScraper
+from app.utils.base_scraper_util import BaseScraper
 import requests
 import json
 import google.genai as genai
 
-# Set up logging to file instead of terminal
+# Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -169,37 +169,4 @@ IMPORTANT: Your response MUST be {max_chars} characters or less. Count carefully
             
     except Exception as e:
         logger.error(f"Error getting Gemini summary: {e}")
-        return f"Failed to get summary from Gemini due to an error: {str(e)}"
-
-if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Scrape text from a URL and get a Gemini summary")
-    parser.add_argument("url", help="URL to scrape text from")
-    parser.add_argument("--visible", action="store_true", help="Run Chrome in visible mode (not headless)")
-    parser.add_argument("--max-chars", type=int, default=300, help="Maximum characters for Gemini summary")
-    
-    args = parser.parse_args()
-    
-    scraper = TextScraper(headless=not args.visible)
-    
-    try:
-        # Scrape text content (without printing details)
-        print(f"Scraping text from {args.url}...")
-        text_data = scraper.scrape_text(args.url)
-        
-        # Get Gemini summary
-        print("\nGetting summary from Gemini...")
-        summary = get_gemini_summary(text_data, max_chars=args.max_chars)
-        
-        # Print only the Gemini summary
-        print("\n" + "="*50)
-        print("WEBSITE SUMMARY")
-        print("="*50)
-        print(f"\nTitle: {text_data['title']}")
-        print(f"\nGemini Summary:")
-        print(summary)
-        print("\n" + "="*50)
-        
-    finally:
-        scraper.close() 
+        return f"Failed to get summary from Gemini due to an error: {str(e)}" 

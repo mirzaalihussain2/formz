@@ -19,21 +19,28 @@ class BaseScraper:
         """
         # Set up Chrome options
         chrome_options = Options()
+        
         if headless:
-            chrome_options.add_argument("--headless=new")
-        chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--headless")
+        
+        # Add additional options for better performance and compatibility
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_argument("--disable-notifications")
+        chrome_options.add_argument("--disable-extensions")
         
-        # Set up user agent to avoid being blocked
-        chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-        
-        # Initialize the WebDriver
-        self.driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),
-            options=chrome_options
-        )
+        # Initialize Chrome WebDriver
+        try:
+            self.driver = webdriver.Chrome(
+                service=Service(ChromeDriverManager().install()),
+                options=chrome_options
+            )
+            logger.info("Chrome WebDriver initialized successfully")
+        except Exception as e:
+            logger.error(f"Error initializing Chrome WebDriver: {e}")
+            raise
     
     def _scroll_page(self, max_scroll, wait_time):
         """
@@ -41,32 +48,30 @@ class BaseScraper:
         
         Args:
             max_scroll (int): Maximum number of times to scroll
-            wait_time (int): Time to wait between scrolls
+            wait_time (int): Time to wait between scrolls (in seconds)
         """
-        logger.info(f"Scrolling page up to {max_scroll} times")
+        logger.info(f"Scrolling page (max_scroll={max_scroll}, wait_time={wait_time})")
         
         # Get initial page height
         last_height = self.driver.execute_script("return document.body.scrollHeight")
         
+        # Scroll down to bottom
         for i in range(max_scroll):
-            # Scroll down to the bottom
+            # Scroll down to bottom
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             
-            # Wait for new content to load
+            # Wait to load page
             time.sleep(wait_time)
             
             # Calculate new scroll height and compare with last scroll height
             new_height = self.driver.execute_script("return document.body.scrollHeight")
-            
-            # Break if no new content loaded
             if new_height == last_height:
-                logger.info(f"No more content to load after {i+1} scrolls")
+                logger.info(f"Reached end of page after {i+1} scrolls")
                 break
-                
             last_height = new_height
     
     def close(self):
         """Close the WebDriver"""
-        if self.driver:
+        if hasattr(self, 'driver'):
             self.driver.quit()
-            logger.info("WebDriver closed") 
+            logger.info("Chrome WebDriver closed") 
