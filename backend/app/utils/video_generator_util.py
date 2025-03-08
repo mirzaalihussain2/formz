@@ -31,7 +31,7 @@ class VideoGenerator:
         # Set the API token for the replicate client
         os.environ["REPLICATE_API_TOKEN"] = self.api_token
     
-    def generate_video(self, prompt=None, output_path="./generated_video.mp4", max_retries=2, chunk_size=1024*1024):
+    def generate_video(self, prompt=None, output_path="./generated_video.mp4", max_retries=2, chunk_size=512*1024):
         """
         Generate a video based on the provided prompt and save to the specified path
         
@@ -59,17 +59,18 @@ class VideoGenerator:
         # Run the model with retries
         for attempt in range(max_retries + 1):
             try:
-                # The output is a URL to the video
+                # Use lower quality settings for Railway to reduce memory usage
                 output = replicate.run(
                     model,
                     input={
                         "prompt": prompt,
-                        # Add any other parameters the model accepts
                         "negative_prompt": "poor quality, blurry, low resolution",
-                        # Add parameters to reduce quality/size if needed
-                        "fps": 24,  # Lower FPS to reduce size
-                        "width": 512,  # Smaller width
-                        "height": 512,  # Smaller height
+                        # Reduce quality for Railway
+                        "fps": 24,
+                        "width": 512,
+                        "height": 512,
+                        "num_frames": 24 * 5,  # 5 seconds at 24fps
+                        "guidance_scale": 15.0,  # Lower guidance scale
                     }
                 )
                 
@@ -88,11 +89,10 @@ class VideoGenerator:
             except Exception as e:
                 logger.error(f"Error generating video (attempt {attempt+1}/{max_retries+1}): {str(e)}")
                 if attempt < max_retries:
-                    logger.info(f"Retrying in 5 seconds...")
-                    time.sleep(5)
+                    logger.info(f"Retrying in 3 seconds...")
+                    time.sleep(3)
                 else:
-                    logger.error("Max retries reached, giving up.")
-                    # Create a fallback video or return an error path
+                    logger.error("Max retries reached, creating fallback video.")
                     self._create_fallback_video(output_path)
                     return output_path
     
