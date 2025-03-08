@@ -9,5 +9,11 @@ export DISPLAY=:99
 sleep 1
 
 echo "Starting application..."
-# Start the application
-exec gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers=3 --log-level=info 
+# Start the application with increased timeout and gevent worker
+exec gunicorn wsgi:app \
+    --bind 0.0.0.0:$PORT \
+    --workers=2 \
+    --threads=4 \
+    --worker-class=gthread \
+    --timeout=120 \
+    --log-level=info 
