@@ -1,5 +1,9 @@
 import time
 import logging
+import os
+import platform
+import subprocess
+import chromedriver_autoinstaller
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -21,7 +25,7 @@ class BaseScraper:
         chrome_options = Options()
         
         if headless:
-            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--headless=new")
         
         # Add additional options for better performance and compatibility
         chrome_options.add_argument("--no-sandbox")
@@ -30,16 +34,50 @@ class BaseScraper:
         chrome_options.add_argument("--window-size=1920,1080")
         chrome_options.add_argument("--disable-notifications")
         chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--disable-setuid-sandbox")
+        chrome_options.add_argument("--disable-web-security")
+        chrome_options.add_argument("--disable-features=IsolateOrigins,site-per-process")
         
         # Initialize Chrome WebDriver
         try:
-            self.driver = webdriver.Chrome(
-                service=Service(ChromeDriverManager().install()),
-                options=chrome_options
-            )
+            # Check if running in a container environment (like Railway)
+            is_container = os.environ.get('CONTAINER_ENV') or os.environ.get('RAILWAY_ENVIRONMENT')
+            
+            if is_container:
+                logger.info("Running in container environment")
+                # In container, use the installed Chrome binary
+                chrome_options.binary_location = "/usr/bin/google-chrome"
+                
+                # Auto-install matching chromedriver
+                chromedriver_autoinstaller.install()
+                
+                # Create a service with the installed chromedriver
+                self.driver = webdriver.Chrome(options=chrome_options)
+            else:
+                # Local development - use ChromeDriverManager
+                logger.info("Running in local environment")
+                self.driver = webdriver.Chrome(
+                    service=Service(ChromeDriverManager().install()),
+                    options=chrome_options
+                )
             logger.info("Chrome WebDriver initialized successfully")
         except Exception as e:
             logger.error(f"Error initializing Chrome WebDriver: {e}")
+            # Print more detailed error information
+            logger.error(f"System: {platform.system()}")
+            logger.error(f"Chrome path exists: {os.path.exists('/usr/bin/google-chrome')}")
+            
+            # Try to get Chrome version
+            try:
+                if platform.system() == 'Linux':
+                    chrome_version = subprocess.check_output(
+                        ['/usr/bin/google-chrome', '--version'], 
+                        stderr=subprocess.STDOUT
+                    ).decode('utf-8')
+                    logger.error(f"Chrome version: {chrome_version}")
+            except Exception as chrome_err:
+                logger.error(f"Failed to get Chrome version: {chrome_err}")
+                
             raise
     
     def _scroll_page(self, max_scroll, wait_time):
