@@ -1,31 +1,46 @@
-# Running backend
+# Website to Video Generator
 
-## Setup
-1. Check you have Python 3.11 installed, a specific version number should be returned in the Terminal (e.g. `Python 3.11.11`).
-    ```bash
-    python3.11 --version
-    ```
-<br>
+This project provides tools to:
+1. Scrape images from websites
+2. Extract and summarize text content
+3. Generate videos using AI
 
-2. Navigate to `backend` folder and create an `.env.local` file (copying `.env.example`).
-    ```bash
-    cd backend && cp .env.example .env.local
-    ```
-<br>
+## Quick Start - Testing Replicate API
 
-## Running backend locally
-The backend can be run:
-* within a virtual environment or a docker container
-* in development or production mode
+To test if the Replicate API integration works correctly:
 
-<br>
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-From the backend folder, there are 4 ways to run the backend:
-| **environment** | **mode** | **command** |
-|-----------------|----------|-------------|
-| virtual env | dev | `./boot.sh venv dev` |
-| virtual env | prod | `./boot.sh venv prod` |
-| docker | dev | `./boot.sh docker dev` |
-| docker | prod | `./boot.sh docker prod` |  
+2. Run the test script:
+```bash
+python test_replicate.py --api-key YOUR_REPLICATE_API_KEY --output test_video.mp4
+```
 
-Backend served at [http://localhost:8080](http://localhost:8080) - only route available is 'Hello, World!' smoke test on index route (`/`).
+This will generate a simple 5-second video using a hardcoded prompt and save it to the specified output path.
+
+## Getting a Replicate API Key
+
+1. Sign up for an account at [Replicate](https://replicate.com/)
+2. Navigate to your account settings
+3. Generate an API token
+4. Use this token with the `--api-key` parameter or set it as the `REPLICATE_API_TOKEN` environment variable
+
+## Project Structure
+
+- `backend/app/routes/video_generator.py`: Core functionality for generating videos using Replicate
+- `backend/app/routes/image_scraper.py`: Tools for scraping images from websites
+- `backend/app/routes/text_scraper.py`: Tools for extracting and summarizing text from websites
+- `test_replicate.py`: Simple test script for the Replicate API integration
+
+## Full Website-to-Video Pipeline
+
+The full pipeline for converting websites to videos is still under development. Currently, you can test the individual components:
+
+1. Image scraping
+2. Text extraction and summarization
+3. Video generation (via the test script)
+
+Stay tuned for updates on the complete pipeline integration.
