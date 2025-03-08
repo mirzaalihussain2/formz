@@ -2,22 +2,18 @@ import os
 import time
 import requests
 import io
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 from urllib.parse import urljoin, urlparse
 import logging
 from PIL import Image
 import numpy as np
 import base64
+from app.routes.base_scraper import BaseScraper
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-class ImageScraper:
+class ImageScraper(BaseScraper):
     def __init__(self, headless=True, download_path="./downloaded_images"):
         """
         Initialize the image scraper with Selenium WebDriver
@@ -26,30 +22,13 @@ class ImageScraper:
             headless (bool): Whether to run Chrome in headless mode
             download_path (str): Path to save downloaded images
         """
+        super().__init__(headless=headless)
         self.download_path = download_path
         
         # Create download directory if it doesn't exist
         if not os.path.exists(download_path):
             os.makedirs(download_path)
             
-        # Set up Chrome options
-        chrome_options = Options()
-        if headless:
-            chrome_options.add_argument("--headless=new")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--window-size=1920,1080")
-        
-        # Set up user agent to avoid being blocked
-        chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-        
-        # Initialize the WebDriver
-        self.driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),
-            options=chrome_options
-        )
-        
     def scrape_images(self, url, scroll=True, max_scroll=5, wait_time=2):
         """
         Scrape images from a given URL

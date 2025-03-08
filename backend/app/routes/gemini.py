@@ -52,7 +52,7 @@ def csv_to_markdown(csv_path):
     markdown_table = tabulate(df, headers=df.columns, tablefmt="pipe", showindex=False)
     return "\n\nCSV DATABASE:\n" + markdown_table
 
-@bp.route('/gemini', methods=['GET'])
+@bp.route('/gemini', methods=['GET', 'POST'])
 def scrape_webpage():
     try:
         api_key = os.getenv('GEMINI_API_KEY')
@@ -64,19 +64,43 @@ def scrape_webpage():
         
         client = genai.Client(api_key=api_key)
 
-        # Create proper content structure using the genai.types module
-        response = client.models.generate_content(
-            model="gemini-1.5-pro",
-            contents="Scrape this webpage: https://www.brompton.com/",
-            config=genai.types.GenerateContentConfig(
-                system_instruction="Scrape this webpage"
+        # Handle POST request with prompt
+        if request.method == 'POST':
+            data = request.get_json()
+            prompt = data.get('prompt', '')
+            
+            if not prompt:
+                return jsonify({
+                    "status": "error",
+                    "message": "No prompt provided"
+                }), 400
+            
+            # Create proper content structure using the genai.types module
+            response = client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt
             )
-        )
+            
+            return jsonify({
+                "status": "success",
+                "response": response.text
+            })
+        
+        # Handle GET request (original functionality)
+        else:
+            # Create proper content structure using the genai.types module
+            response = client.models.generate_content(
+                model="gemini-1.5-pro",
+                contents="Scrape this webpage: https://www.brompton.com/",
+                config=genai.types.GenerateContentConfig(
+                    system_instruction="Scrape this webpage"
+                )
+            )
 
-        return jsonify({
-            "status": "success",
-            "response": response.text
-        })
+            return jsonify({
+                "status": "success",
+                "response": response.text
+            })
 
     except ValidationError as error:
         return jsonify({
